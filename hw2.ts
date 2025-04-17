@@ -1,97 +1,75 @@
-import express from "express";
+#ran with uvicorn mainhw2:app --reload
 
-const app = express();
-const PORT = 3000;
-type User = {
-  Name: string;
-  Email: string;
-};
-// Middleware to parse JSON requests
-app.use(express.json());
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import List
 
-// In-memory user list
-let userList: User[] = [{ Name: "Ash", Email: "Ash@example.com" }];
+app = FastAPI()
 
-// GET all user
-app.get("/user", (req, res) => {
-  res.json({ user: userList });
-});
+# Models
+class User(BaseModel):
+    Name: str
+    Email: str
 
-// POST a new user
-app.post("/user", (req, res) => {
-  userList.push(req.body);
-  res.json({ userList: userList });
-});
+class Book(BaseModel):
+    Name: str
+    ISBN: str
 
-// DELETE a user by index
-app.delete("/user", (req, res) => {
-  const { index } = req.body;
-  if (index === undefined || index < 0 || index >= userList.length) {
-    return res.status(400).json({ error: "Invalid index" });
-  }
-  userList.splice(index, 1);
-});
+class Review(BaseModel):
+    Rating: int
 
-type Books = {
-  Name: string;
-  ISBN: string;
-};
-// Middleware to parse JSON requests
-app.use(express.json());
+# In-memory data
+user_list = [User(Name="Ash", Email="Ash@example.com")]
+book_list = [Book(Name="title", ISBN="123456789")]
+rating_list = [Review(Rating=1)]
 
-// In-memory book list
-let bookList: Books[] = [{ Name: "title", ISBN: "123456789" }];
+# User endpoints
+@app.get("/users")
+async def get_users():
+    return {"users": user_list}
 
-// Get all books
-app.get("/book", (req, res) => {
-  res.json({ book: bookList });
-});
+@app.post("/users")
+async def add_user(user: User):
+    user_list.append(user)
+    return {"users": user_list}
 
-// Post a new book
-app.post("/book", (req, res) => {
-  bookList.push(req.body);
-  res.json({ bookList: bookList });
-});
+@app.delete("/users")
+async def delete_user(index: int = 0):
+    if index < 0 or index >= len(user_list):
+        raise HTTPException(status_code=400, detail="Invalid index")
+    user_list.pop(index)
+    return {"users": user_list}
 
-// DELETE a book by index
-app.delete("/book", (req, res) => {
-  const { index } = req.body;
-  if (index === undefined || index < 0 || index >= bookList.length) {
-    return res.status(400).json({ error: "Invalid index" });
-  }
-  bookList.splice(index, 1);
-});
+# Book endpoints (similar structure)
+@app.get("/books")
+async def get_books():
+    return {"books": book_list}
 
-type Reviews = {
-  Rating: number;
-};
-// Middleware to parse JSON requests
-app.use(express.json());
+@app.post("/books")
+async def add_book(book: Book):
+    book_list.append(book)
+    return {"books": book_list}
 
-// In-memory rating list
-let ratingList: Reviews[] = [{ Rating: 1 }];
+@app.delete("/books")
+async def delete_book(index: int = 0):
+    if index < 0 or index >= len(book_list):
+        raise HTTPException(status_code=400, detail="Invalid index")
+    book_list.pop(index)
+    return {"books": book_list}
 
-// Get all rating
-app.get("/rating", (req, res) => {
-  res.json({ rating: ratingList });
-});
+# Rating endpoints
+@app.get("/ratings")
+async def get_ratings():
+    return {"ratings": rating_list}
 
-// Post a new rating
-app.post("/rating", (req, res) => {
-  ratingList.push(req.body);
-  res.json({ ratingList: ratingList });
-});
+@app.post("/ratings")
+async def add_rating(review: Review):
+    rating_list.append(review)
+    return {"ratings": rating_list}
 
-// DELETE a rating by index
-app.delete("/rating", (req, res) => {
-  const { index } = req.body;
-  if (index === undefined || index < 0 || index >= ratingList.length) {
-    return res.status(400).json({ error: "Invalid index" });
-  }
-  ratingList.splice(index, 1);
-});
-
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+@app.delete("/ratings")
+async def delete_rating(index: int = 0):
+    if index < 0 or index >= len(rating_list):
+        raise HTTPException(status_code=400, detail="Invalid index")
+    rating_list.pop(index)
+    return {"ratings": rating_list}
